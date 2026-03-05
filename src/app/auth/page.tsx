@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Tag, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 type Step = 'auth' | 'phone'
 type Tab = 'signin' | 'signup'
 
-export default function AuthPage() {
+function AuthPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/campuses'
@@ -22,35 +22,30 @@ export default function AuthPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
-  // Sign up form
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
-  // Phone step
   const [phone, setPhone] = useState('')
-
-  // OTP step
   const [showOtp, setShowOtp] = useState(false)
   const [otp, setOtp] = useState('')
 
- useEffect(() => {
-  supabase.auth.getUser().then(async ({ data: { user } }) => {
-    if (user) {
-      // Only show phone step if coming from sign up (no profile yet)
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('phone')
-        .eq('id', user.id)
-        .single()
-      if (!profile || !profile.phone) {
-        setStep('phone')
-      } else {
-        router.push(redirect)
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('phone')
+          .eq('id', user.id)
+          .single()
+        if (!profile || !profile.phone) {
+          setStep('phone')
+        } else {
+          router.push(redirect)
+        }
       }
-    }
-  })
-}, [])
+    })
+  }, [])
+
   const handleGoogleSignIn = async () => {
     setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
@@ -101,22 +96,22 @@ export default function AuthPage() {
     setLoading(false)
   }
 
- const handleSignIn = async () => {
-  setLoading(true)
-  setError('')
-  if (!email || !password) {
-    setError('Please fill in all fields')
+  const handleSignIn = async () => {
+    setLoading(true)
+    setError('')
+    if (!email || !password) {
+      setError('Please fill in all fields')
+      setLoading(false)
+      return
+    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      setError(error.message)
+    } else {
+      router.push(redirect)
+    }
     setLoading(false)
-    return
   }
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) {
-    setError(error.message)
-  } else {
-    router.push(redirect)
-  }
-  setLoading(false)
-}   
 
   const handleSavePhone = async () => {
     if (!phone || phone.length < 10) {
@@ -163,7 +158,7 @@ export default function AuthPage() {
       }
 
       router.push(redirect)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Phone save exception:', err)
       setError('Something went wrong. Please try again.')
     } finally {
@@ -171,7 +166,6 @@ export default function AuthPage() {
     }
   }
 
-  // PHONE STEP
   if (step === 'phone') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
@@ -207,7 +201,6 @@ export default function AuthPage() {
     )
   }
 
-  // OTP STEP
   if (showOtp) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
@@ -241,17 +234,15 @@ export default function AuthPage() {
     )
   }
 
-  // MAIN AUTH
   return (
     <div className="min-h-screen bg-white flex">
-      {/* LEFT SIDE - desktop only */}
       <div className="hidden md:flex flex-col justify-center px-16 bg-gray-50 w-1/2 border-r border-gray-100">
         <div className="flex items-center gap-2 mb-10">
           <Tag className="text-emerald-500" size={28} />
           <span className="font-bold text-2xl">CampusThrift</span>
         </div>
         <h2 className="text-4xl font-bold text-gray-900 leading-tight mb-4">
-          Buy & sell smarter<br />on campus.
+          Buy &amp; sell smarter<br />on campus.
         </h2>
         <p className="text-gray-500 text-base leading-relaxed mb-8">
           The marketplace built for college students. Textbooks, electronics, furniture — find it from someone who was just in your shoes.
@@ -262,7 +253,6 @@ export default function AuthPage() {
         </span>
       </div>
 
-      {/* RIGHT SIDE */}
       <div className="flex flex-col justify-center px-8 md:px-16 w-full md:w-1/2">
         <div className="flex items-center gap-2 mb-8 md:hidden">
           <Tag className="text-emerald-500" size={22} />
@@ -273,7 +263,6 @@ export default function AuthPage() {
           {tab === 'signup' ? 'Create your account' : 'Welcome back'}
         </h3>
 
-        {/* TABS */}
         <div className="flex bg-gray-100 rounded-xl p-1 mb-8">
           {(['signup', 'signin'] as Tab[]).map(t => (
             <button
@@ -290,7 +279,6 @@ export default function AuthPage() {
 
         {error && <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-xl">{error}</p>}
 
-        {/* GOOGLE */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
@@ -311,7 +299,6 @@ export default function AuthPage() {
           <div className="flex-1 h-px bg-gray-100" />
         </div>
 
-        {/* SIGN UP FORM */}
         {tab === 'signup' && (
           <div className="space-y-4">
             <input
@@ -354,7 +341,6 @@ export default function AuthPage() {
           </div>
         )}
 
-        {/* SIGN IN FORM */}
         {tab === 'signin' && (
           <div className="space-y-4">
             <input
@@ -391,5 +377,13 @@ export default function AuthPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+      <AuthPageInner />
+    </Suspense>
   )
 }
