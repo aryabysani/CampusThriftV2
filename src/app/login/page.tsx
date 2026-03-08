@@ -92,20 +92,14 @@ export default function AuthPage() {
         .brand {
           display: flex;
           align-items: center;
-          gap: 10px;
-        }
-
-        .brand-dot {
-          width: 10px; height: 10px;
-          background: #C4622D;
-          border-radius: 50%;
         }
 
         .brand-name {
-          font-family: 'Playfair Display', serif;
+          font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+          font-weight: 800;
           font-size: 22px;
           color: #FAF7F2;
-          letter-spacing: 0.02em;
+          letter-spacing: -0.03em;
         }
 
         .left-content {
@@ -317,7 +311,6 @@ export default function AuthPage() {
         {/* LEFT */}
         <div className="left-panel">
           <div className="brand">
-            <div className="brand-dot" />
             <span className="brand-name">CampusThrift</span>
           </div>
 

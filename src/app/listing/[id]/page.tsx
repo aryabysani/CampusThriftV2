@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Trash2, CheckCircle, Lock } from 'lucide-react'
+import Footer from '@/components/Footer'
 
 function timeAgo(date: string) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
@@ -98,26 +99,28 @@ export default function ListingDetailPage() {
   const images = listing?.listing_images || []
 
   const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
-    Clothes: { bg: '#FEF9C3', color: '#854D0E' },
-    Food: { bg: '#FCE7F3', color: '#9D174D' },
-    Books: { bg: '#DBEAFE', color: '#1E40AF' },
-    Others: { bg: '#F3F4F6', color: '#374151' },
+    Clothing: { bg: 'rgba(123,92,240,0.12)', color: '#7B5CF0' },
+    'Books/Stationery': { bg: 'rgba(0,212,255,0.10)', color: '#00D4FF' },
+    Footwear: { bg: 'rgba(255,45,155,0.10)', color: '#FF2D9B' },
+    'Small Appliances': { bg: 'rgba(0,212,255,0.08)', color: '#00B4D8' },
+    Foods: { bg: 'rgba(255,159,64,0.10)', color: '#FF9F40' },
+    Other: { bg: 'rgba(88,101,120,0.15)', color: '#8892A4' },
   }
-  const catStyle = CATEGORY_COLORS[listing?.category] || CATEGORY_COLORS['Others']
+  const catStyle = CATEGORY_COLORS[listing?.category] || CATEGORY_COLORS['Other']
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF7F2' }}>
-      <div style={{ width: 32, height: 32, border: '3px solid #E7E0D8', borderTopColor: '#C4622D', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#06060F' }}>
+      <div style={{ width: 32, height: 32, border: '3px solid rgba(123,92,240,0.2)', borderTopColor: '#7B5CF0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 
   if (notFound) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#FAF7F2', fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#06060F', fontFamily: 'Space Grotesk, sans-serif' }}>
       <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
-      <h2 style={{ fontSize: 24, color: '#1C1917', marginBottom: 8 }}>Listing not found</h2>
-      <p style={{ color: '#78716C', marginBottom: 24 }}>This item may have been removed.</p>
-      <button onClick={() => router.push('/campus/mahe-blr')} style={{ padding: '12px 24px', background: '#1C1917', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontFamily: 'DM Sans, sans-serif' }}>
+      <h2 style={{ fontSize: 24, color: '#E8EEFF', marginBottom: 8, fontFamily: 'Syne, sans-serif', fontWeight: 800 }}>Listing not found</h2>
+      <p style={{ color: '#8892A4', marginBottom: 24 }}>This item may have been removed.</p>
+      <button onClick={() => router.push('/campus/mahe-blr')} style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #7B5CF0, #5B3FD0)', color: 'white', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 14, fontFamily: 'Space Grotesk, sans-serif', fontWeight: 600 }}>
         Browse listings
       </button>
     </div>
@@ -126,75 +129,86 @@ export default function ListingDetailPage() {
   return (
     <>
       <style suppressHydrationWarning>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #FAF7F2; font-family: 'DM Sans', sans-serif; }
+        body { background: #06060F; font-family: 'Space Grotesk', sans-serif; color: #E8EEFF; }
 
         .navbar {
           display: flex; align-items: center; gap: 12px;
-          padding: 16px 48px; background: white;
-          border-bottom: 1px solid #E7E0D8;
+          padding: 16px 48px;
+          background: rgba(6,6,15,0.85); backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(123,92,240,0.18);
           position: sticky; top: 0; z-index: 50;
         }
         .back-btn {
           display: flex; align-items: center; gap: 6px;
           background: none; border: none; cursor: pointer;
-          font-size: 14px; color: #78716C;
-          font-family: 'DM Sans', sans-serif; transition: color 0.15s;
+          font-size: 14px; color: #8892A4;
+          font-family: 'Space Grotesk', sans-serif; transition: color 0.15s;
         }
-        .back-btn:hover { color: #C4622D; }
+        .back-btn:hover { color: #00D4FF; }
         .nav-brand {
-          display: flex; align-items: center; gap: 6px;
-          font-family: 'Playfair Display', serif;
-          font-size: 18px; color: #1C1917; cursor: pointer;
-          margin-left: auto;
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: 20px; color: #E8EEFF; cursor: pointer;
+          letter-spacing: -0.02em; margin-left: auto;
         }
-        .dot { width: 7px; height: 7px; background: #C4622D; border-radius: 50%; }
 
         .sold-banner {
-          background: #DC2626; color: white;
-          text-align: center; padding: 18px;
-          font-size: 20px; font-weight: 700;
-          letter-spacing: 0.05em;
+          background: rgba(255,45,155,0.12); color: #FF2D9B;
+          border-bottom: 1px solid rgba(255,45,155,0.2);
+          text-align: center; padding: 14px;
+          font-size: 14px; font-weight: 600;
+          font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.08em;
         }
 
         .page { max-width: 900px; margin: 0 auto; padding: 40px 48px 80px; }
-        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+        .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
 
         .main-img {
           width: 100%; aspect-ratio: 1; object-fit: cover;
-          border-radius: 16px; background: #F5F0EB; display: block;
+          border-radius: 16px; background: #161630; display: block;
+          border: 1px solid rgba(123,92,240,0.18);
         }
         .main-placeholder {
-          width: 100%; aspect-ratio: 1; background: #F5F0EB;
+          width: 100%; aspect-ratio: 1; background: #161630;
+          border: 1px solid rgba(123,92,240,0.18);
           border-radius: 16px; display: flex; align-items: center;
           justify-content: center; font-size: 64px;
         }
         .thumbnails { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
         .thumb {
           width: 64px; height: 64px; object-fit: cover;
-          border-radius: 8px; cursor: pointer; border: 2px solid transparent;
+          border-radius: 8px; cursor: pointer; border: 2px solid rgba(123,92,240,0.18);
           transition: border-color 0.15s;
         }
-        .thumb.active { border-color: #C4622D; }
+        .thumb.active { border-color: #00D4FF; }
 
         .badges { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .badge { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+        .badge { padding: 4px 10px; border-radius: 100px; font-size: 11px; font-weight: 500; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.04em; }
         .title {
-          font-family: 'Playfair Display', serif;
-          font-size: 28px; color: #1C1917; margin-bottom: 8px; line-height: 1.2;
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: clamp(22px, 4vw, 28px); color: #E8EEFF; margin-bottom: 8px; line-height: 1.2;
         }
-        .price { font-family: 'Playfair Display', serif; font-size: 32px; color: #C4622D; margin-bottom: 16px; }
-        .description { font-size: 14px; font-weight: 300; color: #57534E; line-height: 1.75; margin-bottom: 20px; }
-        .posted-time { font-size: 12px; color: #A8A29E; margin-bottom: 28px; }
+        .meta-label { font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: #5A6480; margin-bottom: 4px; font-family: 'IBM Plex Mono', monospace; }
+        .price { font-family: 'Syne', sans-serif; font-weight: 700; font-size: clamp(26px, 5vw, 34px); color: #00D4FF; margin-bottom: 8px; }
+        .price-type-pill {
+          display: inline-flex; align-items: center; gap: 5px;
+          font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+          font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.04em;
+          margin-bottom: 16px;
+        }
+        .price-type-pill.type-fixed { background: rgba(255,255,255,0.07); color: #E8EEFF; border: 1px solid rgba(255,255,255,0.2); }
+        .price-type-pill.type-negotiable { background: rgba(234,179,8,0.1); color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
+        .description { font-size: 14px; font-weight: 300; color: #8892A4; line-height: 1.75; margin-bottom: 20px; }
+        .posted-time { font-size: 11px; color: #5A6480; margin-bottom: 28px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.06em; }
 
         .seller-box {
-          background: white; border: 1.5px solid #E7E0D8;
+          background: #111125; border: 1px solid rgba(123,92,240,0.18);
           border-radius: 16px; padding: 20px;
         }
         .seller-box-title {
-          font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
-          text-transform: uppercase; color: #A8A29E; margin-bottom: 14px;
+          font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
+          text-transform: uppercase; color: #5A6480; margin-bottom: 14px;
+          font-family: 'IBM Plex Mono', monospace;
         }
 
         .seller-blur { position: relative; }
@@ -205,78 +219,79 @@ export default function ListingDetailPage() {
           align-items: center; justify-content: center;
           cursor: pointer; gap: 8px;
         }
-        .blur-lock-text { font-size: 13px; font-weight: 600; color: #1C1917; text-align: center; }
+        .blur-lock-text { font-size: 13px; font-weight: 600; color: #E8EEFF; text-align: center; }
         .blur-login-btn {
-          padding: 8px 20px; background: #1C1917; color: white;
+          padding: 8px 20px; background: linear-gradient(135deg, #7B5CF0, #5B3FD0); color: white;
           border: none; border-radius: 8px; font-size: 13px; font-weight: 500;
-          font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: all 0.15s;
         }
-        .blur-login-btn:hover { background: #C4622D; }
+        .blur-login-btn:hover { box-shadow: 0 0 20px rgba(123,92,240,0.4); }
 
         .seller-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
         .seller-avatar {
           width: 44px; height: 44px; border-radius: 50%;
-          background: #C4622D; color: white;
+          background: linear-gradient(135deg, #7B5CF0, #5B3FD0); color: white;
           display: flex; align-items: center; justify-content: center;
           font-size: 18px; font-weight: 600; overflow: hidden; flex-shrink: 0;
         }
         .seller-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .seller-name { font-size: 15px; font-weight: 600; color: #1C1917; }
-        .seller-sub { font-size: 12px; color: #A8A29E; font-weight: 300; }
+        .seller-name { font-size: 15px; font-weight: 600; color: #E8EEFF; }
+        .seller-sub { font-size: 12px; color: #5A6480; font-weight: 400; font-family: 'IBM Plex Mono', monospace; }
 
         .whatsapp-btn {
           width: 100%; padding: 13px;
           background: #16A34A; color: white;
           border: none; border-radius: 12px;
           font-size: 15px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer;
           transition: background 0.15s;
           display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .whatsapp-btn:hover { background: #15803D; }
 
-        .your-listing-label { font-size: 12px; color: #A8A29E; margin-bottom: 12px; text-align: center; }
+        .your-listing-label { font-size: 12px; color: #5A6480; margin-bottom: 12px; text-align: center; font-family: 'IBM Plex Mono', monospace; }
         .seller-actions { display: flex; flex-direction: column; gap: 8px; }
         .btn-mark-sold {
           width: 100%; padding: 12px;
-          background: #DBEAFE; color: #1E40AF;
-          border: none; border-radius: 10px;
+          background: rgba(0,212,255,0.08); color: #00D4FF;
+          border: 1px solid rgba(0,212,255,0.2); border-radius: 10px;
           font-size: 14px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer;
           display: flex; align-items: center; justify-content: center; gap: 6px;
-          transition: background 0.15s;
+          transition: all 0.15s;
         }
-        .btn-mark-sold:hover { background: #1E40AF; color: white; }
+        .btn-mark-sold:hover { background: rgba(0,212,255,0.15); }
         .btn-delete {
           width: 100%; padding: 12px;
-          background: white; color: #DC2626;
-          border: 1.5px solid #FECACA; border-radius: 10px;
+          background: rgba(255,45,155,0.06); color: #FF2D9B;
+          border: 1px solid rgba(255,45,155,0.15); border-radius: 10px;
           font-size: 14px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer;
           display: flex; align-items: center; justify-content: center; gap: 6px;
-          transition: background 0.15s;
+          transition: all 0.15s;
         }
-        .btn-delete:hover { background: #FEF2F2; }
+        .btn-delete:hover { background: rgba(255,45,155,0.12); }
 
-        .confirm-box { background: #FEF2F2; border-radius: 10px; padding: 14px; text-align: center; margin-top: 4px; }
-        .confirm-text { font-size: 13px; color: #991B1B; margin-bottom: 10px; font-weight: 500; }
+        .confirm-box { background: rgba(255,45,155,0.06); border: 1px solid rgba(255,45,155,0.15); border-radius: 10px; padding: 14px; text-align: center; margin-top: 4px; }
+        .confirm-text { font-size: 13px; color: #FF2D9B; margin-bottom: 10px; font-weight: 500; }
         .confirm-btns { display: flex; gap: 8px; }
         .confirm-yes {
-          flex: 1; padding: 9px; background: #DC2626; color: white;
+          flex: 1; padding: 9px; background: #FF2D9B; color: white;
           border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer;
         }
         .confirm-no {
-          flex: 1; padding: 9px; background: white; color: #374151;
-          border: 1.5px solid #E7E0D8; border-radius: 8px;
+          flex: 1; padding: 9px; background: rgba(123,92,240,0.08); color: #8892A4;
+          border: 1px solid rgba(123,92,240,0.18); border-radius: 8px;
           font-size: 13px; font-weight: 600;
-          font-family: 'DM Sans', sans-serif; cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer;
         }
 
         .toast {
           position: fixed; bottom: 32px; left: 50%;
           transform: translateX(-50%);
-          background: #1C1917; color: white;
+          background: #111125; color: #E8EEFF;
+          border: 1px solid rgba(123,92,240,0.3);
           padding: 12px 24px; border-radius: 100px;
           font-size: 14px; font-weight: 500; z-index: 999;
           animation: toastIn 0.3s ease; white-space: nowrap;
@@ -288,7 +303,16 @@ export default function ListingDetailPage() {
 
         @media (max-width: 700px) {
           .navbar, .page { padding-left: 20px; padding-right: 20px; }
-          .layout { grid-template-columns: 1fr; gap: 28px; }
+          .page { padding-top: 28px; padding-bottom: 60px; }
+          .layout { grid-template-columns: 1fr; gap: 24px; }
+        }
+        @media (max-width: 480px) {
+          .navbar, .page { padding-left: 16px; padding-right: 16px; }
+          .whatsapp-btn { padding: 15px; font-size: 14px; }
+          .seller-box { padding: 16px; }
+        }
+        @media (max-width: 360px) {
+          .navbar, .page { padding-left: 12px; padding-right: 12px; }
         }
       `}</style>
 
@@ -297,7 +321,7 @@ export default function ListingDetailPage() {
           <ArrowLeft size={16} /> Back
         </button>
         <div className="nav-brand" onClick={() => router.push('/')}>
-          <div className="dot" /> JustThriftIt
+          CampusThrift
         </div>
       </nav>
 
@@ -336,15 +360,20 @@ export default function ListingDetailPage() {
               </span>
               {listing?.product_age && (
                 <span className="badge" style={{ background: '#F5F0EB', color: '#78716C' }}>
-                  {listing.product_age}
+                  AGE — {listing.product_age}
                 </span>
               )}
             </div>
 
             <h1 className="title">{listing?.title}</h1>
+            <div className="meta-label">Price</div>
             <div className="price">₹{Number(listing?.price).toLocaleString('en-IN')}</div>
+            {listing?.price_type === 'negotiable'
+              ? <div className="price-type-pill type-negotiable">🤝 Negotiable</div>
+              : <div className="price-type-pill type-fixed">💰 Fixed price</div>
+            }
             <p className="description">{listing?.description}</p>
-            <div className="posted-time">Listed {timeAgo(listing?.created_at)}</div>
+            <div className="posted-time"><span style={{ fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', fontSize: 10 }}>Posted — </span>{timeAgo(listing?.created_at)}</div>
 
             <div className="seller-box">
               <div className="seller-box-title">Seller</div>
@@ -360,7 +389,7 @@ export default function ListingDetailPage() {
                         <div className="seller-sub">MAHE Bangalore</div>
                       </div>
                     </div>
-                    <div style={{ height: 44, background: '#E7E0D8', borderRadius: 12 }} />
+                    <div style={{ height: 44, background: 'rgba(123,92,240,0.12)', borderRadius: 12 }} />
                   </div>
                   <div className="seller-blur-overlay" onClick={() => router.push(`/auth?redirect=/listing/${id}`)}>
                     <Lock size={20} color="#1C1917" />
@@ -399,7 +428,7 @@ export default function ListingDetailPage() {
 
               {/* LOGGED IN — IS BUYER */}
               {isLoggedIn && !isSeller && listing?.status === 'sold' && (
-                <div style={{ textAlign: 'center', padding: '16px 0', color: '#DC2626', fontWeight: 600, fontSize: 15 }}>
+                <div style={{ textAlign: 'center', padding: '16px 0', color: '#FF2D9B', fontWeight: 600, fontSize: 15 }}>
                   ❌ This item has already been sold
                 </div>
               )}
@@ -423,8 +452,8 @@ export default function ListingDetailPage() {
                     className="whatsapp-btn"
                     onClick={() => {
                       const phone = seller?.phone?.replace('+', '') || ''
-                      const msg = encodeURIComponent(`Hi! I found your listing "${listing?.title}" on JustThriftIt. Is it still available?`)
-                      window.open(`https://wa.me/${phone}?text=${msg}`, '_blank')
+                      const msg = encodeURIComponent(`Hi! I found your listing "${listing?.title}" on CampusThrift. Is it still available?`)
+                      window.open(`https://wa.me/${phone}?text=${msg}`, '_blank', 'noopener,noreferrer')
                     }}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
@@ -440,6 +469,7 @@ export default function ListingDetailPage() {
       </div>
 
       {toast && <div className="toast">{toast}</div>}
+      <Footer />
     </>
   )
 }

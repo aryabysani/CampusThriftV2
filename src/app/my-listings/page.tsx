@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
+import Footer from '@/components/Footer'
 
 const CONDITION_LABELS: Record<string, string> = {
   new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair', poor: 'Poor',
@@ -22,7 +23,7 @@ export default function MyListingsPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) { router.push('/login'); return }
+      if (!data.user) { router.push('/auth'); return }
       setUser(data.user)
       fetchMyListings(data.user.id)
     })
@@ -69,67 +70,69 @@ export default function MyListingsPage() {
   }
 
   const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-    active: { label: 'Active', color: '#166534', bg: '#DCFCE7' },
-    sold: { label: 'Sold', color: '#1e40af', bg: '#DBEAFE' },
-    reserved: { label: 'Reserved', color: '#92400e', bg: '#FEF3C7' },
-    removed: { label: 'Removed', color: '#6b7280', bg: '#F3F4F6' },
+    active: { label: 'LIVE', color: '#00D4FF', bg: 'rgba(0,212,255,0.1)' },
+    sold: { label: 'SOLD', color: '#7B5CF0', bg: 'rgba(123,92,240,0.1)' },
+    reserved: { label: 'RESERVED', color: '#FF9F40', bg: 'rgba(255,159,64,0.1)' },
+    removed: { label: 'REMOVED', color: '#5A6480', bg: 'rgba(90,100,128,0.1)' },
   }
 
   return (
     <>
       <style suppressHydrationWarning>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #FAF7F2; font-family: 'DM Sans', sans-serif; }
+        body { background: #06060F; font-family: 'Space Grotesk', sans-serif; color: #E8EEFF; }
 
         .navbar {
           position: sticky; top: 0; z-index: 100;
-          background: #FAF7F2ee; backdrop-filter: blur(12px);
-          border-bottom: 1px solid #E7E0D8;
+          background: rgba(6,6,15,0.85); backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(123,92,240,0.18);
           padding: 0 40px; height: 60px;
           display: flex; align-items: center; justify-content: space-between;
         }
         .nav-left { display: flex; align-items: center; gap: 12px; }
         .back-btn {
           background: none; border: none; cursor: pointer;
-          color: #78716C; font-size: 20px; padding: 4px 8px;
-          border-radius: 6px; transition: background 0.15s;
+          color: #8892A4; font-size: 20px; padding: 4px 8px;
+          border-radius: 6px; transition: all 0.15s;
         }
-        .back-btn:hover { background: #EFEBE4; }
+        .back-btn:hover { color: #E8EEFF; background: rgba(123,92,240,0.08); }
         .brand {
-          display: flex; align-items: center; gap: 7px;
-          font-family: 'Playfair Display', serif; font-size: 19px; color: #1C1917;
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: 19px; color: #E8EEFF;
+          letter-spacing: -0.02em;
         }
-        .dot { width: 8px; height: 8px; background: #C4622D; border-radius: 50%; }
         .new-btn {
-          padding: 8px 16px; background: #1C1917; color: #FAF7F2;
-          border: none; border-radius: 8px; font-size: 13px; font-weight: 500;
-          font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s;
+          padding: 8px 16px;
+          background: linear-gradient(135deg, #7B5CF0, #5B3FD0); color: white;
+          border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: all 0.15s;
+          box-shadow: 0 0 16px rgba(123,92,240,0.3);
         }
-        .new-btn:hover { background: #C4622D; }
+        .new-btn:hover { box-shadow: 0 0 24px rgba(123,92,240,0.5); transform: translateY(-1px); }
 
         .container { max-width: 720px; margin: 0 auto; padding: 48px 40px 80px; }
 
         .page-title {
-          font-family: 'Playfair Display', serif;
-          font-size: 32px; color: #1C1917; margin-bottom: 6px;
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: 32px; color: #E8EEFF; margin-bottom: 6px; letter-spacing: -0.02em;
         }
-        .page-sub { font-size: 14px; color: #A8A29E; font-weight: 300; margin-bottom: 36px; }
+        .page-sub { font-size: 14px; color: #8892A4; font-weight: 300; margin-bottom: 36px; }
 
         .listing-item {
-          background: white; border-radius: 14px;
-          border: 1px solid #E7E0D8;
+          background: #111125; border-radius: 14px;
+          border: 1px solid rgba(123,92,240,0.18);
           padding: 20px 24px;
           display: flex; align-items: flex-start;
           gap: 20px; margin-bottom: 14px;
           transition: border-color 0.15s;
         }
-        .listing-item:hover { border-color: #C4622D20; }
-        .listing-item.dimmed { opacity: 0.5; }
+        .listing-item:hover { border-color: rgba(123,92,240,0.35); }
+        .listing-item.dimmed { opacity: 0.4; }
 
         .listing-emoji {
           width: 52px; height: 52px; flex-shrink: 0;
-          background: #EFEBE4; border-radius: 12px;
+          background: rgba(123,92,240,0.08); border: 1px solid rgba(123,92,240,0.15);
+          border-radius: 12px;
           display: flex; align-items: center; justify-content: center;
           font-size: 26px;
         }
@@ -137,7 +140,7 @@ export default function MyListingsPage() {
         .listing-info { flex: 1; min-width: 0; }
 
         .listing-title {
-          font-size: 15px; font-weight: 500; color: #1C1917;
+          font-size: 15px; font-weight: 500; color: #E8EEFF;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           margin-bottom: 6px;
         }
@@ -148,17 +151,18 @@ export default function MyListingsPage() {
         }
 
         .listing-price {
-          font-family: 'Playfair Display', serif;
-          font-size: 16px; color: #1C1917;
+          font-family: 'Syne', sans-serif;
+          font-size: 16px; color: #00D4FF; font-weight: 700;
         }
 
         .status-badge {
           padding: 2px 8px; border-radius: 100px;
-          font-size: 11px; font-weight: 600;
+          font-size: 10px; font-weight: 500;
+          font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.06em;
         }
 
-        .cond-text { font-size: 12px; color: #A8A29E; font-weight: 300; }
-        .time-text { font-size: 12px; color: #C7BFB8; font-weight: 300; }
+        .cond-text { font-size: 12px; color: #5A6480; font-weight: 400; }
+        .time-text { font-size: 12px; color: #5A6480; font-weight: 400; font-family: 'IBM Plex Mono', monospace; }
 
         .listing-actions {
           display: flex; align-items: center; gap: 8px; flex-shrink: 0;
@@ -166,55 +170,63 @@ export default function MyListingsPage() {
         }
 
         .action-btn {
-          padding: 7px 14px; border-radius: 8px;
-          font-size: 12px; font-weight: 500;
-          font-family: 'DM Sans', sans-serif; cursor: pointer; border: none;
-          transition: all 0.15s; white-space: nowrap;
+          padding: 10px 14px; border-radius: 8px;
+          font-size: 13px; font-weight: 500;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer; border: none;
+          transition: all 0.15s; white-space: nowrap; min-height: 40px;
         }
         .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .btn-sold { background: #DBEAFE; color: #1e40af; }
-        .btn-sold:hover:not(:disabled) { background: #1e40af; color: white; }
+        .btn-sold { background: rgba(0,212,255,0.08); color: #00D4FF; border: 1px solid rgba(0,212,255,0.2); }
+        .btn-sold:hover:not(:disabled) { background: rgba(0,212,255,0.15); }
 
-        .btn-remove { background: #FEE2E2; color: #991B1B; }
-        .btn-remove:hover:not(:disabled) { background: #991B1B; color: white; }
+        .btn-remove { background: rgba(255,45,155,0.08); color: #FF2D9B; border: 1px solid rgba(255,45,155,0.2); }
+        .btn-remove:hover:not(:disabled) { background: rgba(255,45,155,0.15); }
 
-        .btn-reactivate { background: #DCFCE7; color: #166534; }
-        .btn-reactivate:hover:not(:disabled) { background: #166534; color: white; }
+        .btn-reactivate { background: rgba(123,92,240,0.08); color: #7B5CF0; border: 1px solid rgba(123,92,240,0.2); }
+        .btn-reactivate:hover:not(:disabled) { background: rgba(123,92,240,0.15); }
 
         .empty-state {
           text-align: center; padding: 80px 20px;
-          color: #A8A29E;
+          color: #5A6480;
         }
         .empty-state .e { font-size: 48px; margin-bottom: 16px; }
-        .empty-state h3 { font-size: 18px; color: #57534E; margin-bottom: 8px; }
-        .empty-state p { font-size: 14px; font-weight: 300; margin-bottom: 24px; }
+        .empty-state h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: #E8EEFF; margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; font-weight: 300; margin-bottom: 24px; color: #8892A4; }
 
         .cta-btn {
-          padding: 12px 24px; background: #1C1917; color: #FAF7F2;
-          border: none; border-radius: 10px; font-size: 14px; font-weight: 500;
-          font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s;
+          padding: 12px 24px;
+          background: linear-gradient(135deg, #7B5CF0, #5B3FD0); color: white;
+          border: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+          font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: all 0.15s;
+          box-shadow: 0 0 20px rgba(123,92,240,0.3);
         }
-        .cta-btn:hover { background: #C4622D; }
+        .cta-btn:hover { box-shadow: 0 0 30px rgba(123,92,240,0.5); transform: translateY(-1px); }
 
         .spinner {
           width: 28px; height: 28px;
-          border: 3px solid #E7E0D8; border-top-color: #C4622D;
+          border: 3px solid rgba(123,92,240,0.2); border-top-color: #7B5CF0;
           border-radius: 50%; animation: spin 0.8s linear infinite; margin: 60px auto;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 640px) {
-          .navbar, .container { padding-left: 16px; padding-right: 16px; }
-          .listing-item { flex-wrap: wrap; }
-          .listing-actions { width: 100%; }
+          .navbar { padding-left: 16px; padding-right: 16px; }
+          .container { padding-left: 16px; padding-right: 16px; padding-top: 28px; }
+          .listing-item { flex-wrap: wrap; padding: 16px; }
+          .listing-actions { width: 100%; justify-content: flex-start; }
+          .page-title { font-size: clamp(24px, 7vw, 32px); }
+        }
+        @media (max-width: 400px) {
+          .navbar { padding-left: 12px; padding-right: 12px; }
+          .container { padding-left: 12px; padding-right: 12px; }
         }
       `}</style>
 
       <nav className="navbar">
         <div className="nav-left">
           <button className="back-btn" onClick={() => router.push('/campus/mahe-blr')}>←</button>
-          <div className="brand"><div className="dot" />CampusThrift</div>
+          <div className="brand">CampusThrift</div>
         </div>
         <button className="new-btn" onClick={() => router.push('/sell')}>+ New listing</button>
       </nav>
@@ -281,6 +293,7 @@ export default function MyListingsPage() {
           })
         )}
       </div>
+      <Footer />
     </>
   )
 }

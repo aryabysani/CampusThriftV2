@@ -1,62 +1,46 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Tag } from 'lucide-react'
-
-const CAMPUSES = [
-  {
-    name: 'MAHE Bangalore',
-    slug: 'mahe-blr',
-    university: 'Manipal Academy of Higher Education',
-    location: 'Bengaluru, Karnataka',
-    available: true,
-  },
-  {
-    name: 'TAPMI Manipal',
-    slug: 'tapmi-manipal',
-    university: 'T.A. Pai Management Institute',
-    location: 'Manipal, Karnataka',
-    available: false,
-  },
-  {
-    name: 'MIT Manipal',
-    slug: 'mit-manipal',
-    university: 'Manipal Institute of Technology',
-    location: 'Manipal, Karnataka',
-    available: false,
-  },
-  {
-    name: 'Manipal University',
-    slug: 'mu-manipal',
-    university: 'Manipal University',
-    location: 'Manipal, Karnataka',
-    available: false,
-  },
-]
+import { createClient } from '@/lib/supabase/client'
+import Footer from '@/components/Footer'
 
 export default function CampusesPage() {
   const router = useRouter()
+  const [campuses, setCampuses] = useState<any[]>([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('campuses').select('id, name, slug, location').order('name')
+      .then(({ data }) => { if (data) setCampuses(data); setLoading(false) })
+  }, [])
+
+  const filtered = campuses.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.location?.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
     <>
       <style suppressHydrationWarning>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #FAF7F2; font-family: 'DM Sans', sans-serif; }
+        body { background: #06060F; font-family: 'Space Grotesk', sans-serif; color: #E8EEFF; }
 
         .nav {
           display: flex; align-items: center; justify-content: space-between;
           padding: 20px 48px;
-          background: #FAF7F2;
-          border-bottom: 1px solid #E7E0D8;
+          background: rgba(6,6,15,0.85);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(123,92,240,0.18);
+          position: sticky; top: 0; z-index: 50;
         }
         .nav-brand {
-          display: flex; align-items: center; gap: 8px;
-          font-family: 'Playfair Display', serif;
-          font-size: 22px; color: #1C1917;
-          cursor: pointer;
+          font-family: 'Syne', sans-serif;
+          font-weight: 800; font-size: 20px; color: #E8EEFF;
+          letter-spacing: -0.02em; cursor: pointer;
         }
-        .dot { width: 9px; height: 9px; background: #C4622D; border-radius: 50%; }
 
         .page-wrap {
           max-width: 900px;
@@ -65,53 +49,61 @@ export default function CampusesPage() {
         }
 
         .page-label {
-          font-size: 11px; font-weight: 600;
-          letter-spacing: 0.12em;
+          font-size: 10px; font-weight: 500;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
-          color: #C4622D;
+          color: #00D4FF;
           margin-bottom: 10px;
+          font-family: 'IBM Plex Mono', monospace;
+          padding-left: 16px;
+          border-left: 2px solid #00D4FF;
         }
 
         .page-title {
-          font-family: 'Playfair Display', serif;
-          font-size: 40px; color: #1C1917;
-          margin-bottom: 8px;
+          font-family: 'Syne', sans-serif;
+          font-weight: 800;
+          font-size: 40px; color: #E8EEFF;
+          margin-bottom: 8px; letter-spacing: -0.02em;
         }
 
         .page-sub {
           font-size: 15px; font-weight: 300;
-          color: #78716C;
+          color: #8892A4;
           margin-bottom: 48px;
         }
 
         .campus-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
           gap: 16px;
         }
 
         .campus-card {
-          border: 1.5px solid #E7E0D8;
+          border: 1px solid rgba(123,92,240,0.18);
           border-radius: 16px;
           padding: 24px;
-          background: white;
+          background: #111125;
           transition: all 0.2s;
           position: relative;
           overflow: hidden;
         }
-
-        .campus-card.available {
-          cursor: pointer;
+        .campus-card::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+          background: linear-gradient(90deg, transparent, #00D4FF, #7B5CF0, transparent);
+          opacity: 0; transition: opacity 0.2s;
         }
+
+        .campus-card.available { cursor: pointer; }
 
         .campus-card.available:hover {
-          border-color: #C4622D;
-          transform: translateY(-3px);
-          box-shadow: 0 8px 32px rgba(196, 98, 45, 0.12);
+          border-color: rgba(123,92,240,0.4);
+          transform: translateY(-4px);
+          box-shadow: 0 16px 40px rgba(0,0,0,0.4);
         }
+        .campus-card.available:hover::before { opacity: 1; }
 
         .campus-card.unavailable {
-          opacity: 0.5;
+          opacity: 0.35;
           cursor: not-allowed;
         }
 
@@ -123,7 +115,8 @@ export default function CampusesPage() {
 
         .campus-icon {
           width: 46px; height: 46px;
-          background: #EFEBE4;
+          background: rgba(123,92,240,0.1);
+          border: 1px solid rgba(123,92,240,0.2);
           border-radius: 12px;
           display: flex; align-items: center; justify-content: center;
           font-size: 22px;
@@ -132,71 +125,110 @@ export default function CampusesPage() {
         .live-badge {
           display: flex; align-items: center; gap: 5px;
           padding: 4px 10px;
-          background: #DCFCE7;
+          background: rgba(0,212,255,0.08);
+          border: 1px solid rgba(0,212,255,0.18);
           border-radius: 100px;
-          font-size: 11px; font-weight: 600;
-          color: #166534;
+          font-size: 10px; font-weight: 500;
+          color: #00D4FF;
+          font-family: 'IBM Plex Mono', monospace;
+          letter-spacing: 0.06em; text-transform: uppercase;
         }
 
         .live-dot {
           width: 6px; height: 6px;
-          background: #16a34a;
+          background: #00D4FF;
           border-radius: 50%;
           animation: livePulse 1.5s ease-in-out infinite;
+          box-shadow: 0 0 6px rgba(0,212,255,0.8);
         }
 
         @keyframes livePulse {
           0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.8); }
+          50% { opacity: 0.3; transform: scale(0.7); }
         }
 
         .soon-badge {
           padding: 4px 10px;
-          background: #F5F5F4;
+          background: rgba(30,32,64,0.6);
           border-radius: 100px;
-          font-size: 11px; font-weight: 500;
-          color: #A8A29E;
+          font-size: 10px; font-weight: 400;
+          color: #5A6480;
+          border: 1px solid rgba(123,92,240,0.18);
+          font-family: 'IBM Plex Mono', monospace;
+          text-transform: uppercase; letter-spacing: 0.06em;
         }
 
         .campus-name {
-          font-family: 'Playfair Display', serif;
-          font-size: 19px; color: #1C1917;
+          font-family: 'Syne', sans-serif;
+          font-weight: 700;
+          font-size: 18px; color: #E8EEFF;
           margin-bottom: 4px;
         }
 
-        .campus-uni {
-          font-size: 11px; color: #A8A29E;
-          font-weight: 300;
-          margin-bottom: 2px;
-        }
-
         .campus-location {
-          font-size: 12px; color: #78716C;
+          font-size: 12px; color: #5A6480;
           font-weight: 400;
         }
 
         .campus-arrow {
           margin-top: 16px;
-          font-size: 13px;
-          color: #C4622D;
+          font-size: 12px;
+          color: #7B5CF0;
           font-weight: 500;
           opacity: 0;
-          transition: opacity 0.15s;
+          transition: all 0.15s;
+          font-family: 'IBM Plex Mono', monospace;
+          letter-spacing: 0.04em;
         }
 
-        .campus-card.available:hover .campus-arrow { opacity: 1; }
+        .campus-card.available:hover .campus-arrow { opacity: 1; color: #00D4FF; transform: translateX(4px); }
+
+        .search-wrap {
+          position: relative;
+          margin-bottom: 32px;
+        }
+        .search-icon {
+          position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+          color: #5A6480; pointer-events: none;
+        }
+        .search-input {
+          width: 100%; padding: 13px 14px 13px 42px;
+          background: #111125; border: 1px solid rgba(123,92,240,0.18);
+          border-radius: 12px; font-size: 14px;
+          font-family: 'Space Grotesk', sans-serif; color: #E8EEFF;
+          outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-input:focus { border-color: #00D4FF; box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+        .search-input::placeholder { color: #5A6480; }
+
+        .no-results {
+          text-align: center; padding: 48px 0;
+          font-size: 14px; color: #5A6480;
+          font-family: 'IBM Plex Mono', monospace;
+        }
 
         @media (max-width: 768px) {
           .nav { padding: 16px 20px; }
-          .page-wrap { padding: 40px 20px 80px; }
-          .page-title { font-size: 30px; }
+          .page-wrap { padding: 36px 20px 80px; }
+          .page-title { font-size: clamp(26px, 7vw, 40px); }
+          .campus-card { padding: 18px; }
+        }
+        @media (max-width: 480px) {
+          .nav { padding: 14px 16px; }
+          .page-wrap { padding: 28px 16px 60px; }
+          .campus-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+          .campus-card { padding: 14px; }
+          .campus-name { font-size: 15px; }
+          .search-input { font-size: 16px; }
+        }
+        @media (max-width: 360px) {
+          .campus-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
       {/* NAV */}
       <nav className="nav">
         <div className="nav-brand" onClick={() => router.push('/')}>
-          <div className="dot" />
           CampusThrift
         </div>
       </nav>
@@ -205,30 +237,41 @@ export default function CampusesPage() {
       <div className="page-wrap">
         <div className="page-label">Step 1 of 2</div>
         <h1 className="page-title">Select your campus</h1>
-        <p className="page-sub">Only students from your campus can see your listings.</p>
+        <p className="page-sub">Select your college campus to browse listings or sell an item.</p>
+
+        <div className="search-wrap">
+          <svg className="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <circle cx="7" cy="7" r="5"/><path d="M12 12l2.5 2.5"/>
+          </svg>
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search your college..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
 
         <div className="campus-grid">
-          {CAMPUSES.map(campus => (
+          {!loading && filtered.length === 0 && search.length > 0 && <div className="no-results">No colleges found for &quot;{search}&quot;</div>}
+          {filtered.map(campus => (
             <div
               key={campus.slug}
-              className={`campus-card ${campus.available ? 'available' : 'unavailable'}`}
-              onClick={() => campus.available && router.push(`/campus/${campus.slug}`)}
+              className="campus-card available"
+              onClick={() => router.push(`/campus/${campus.slug}`)}
             >
               <div className="card-top">
                 <div className="campus-icon">🎓</div>
-                {campus.available
-                  ? <div className="live-badge"><div className="live-dot" />Live</div>
-                  : <div className="soon-badge">Coming soon</div>
-                }
+                <div className="live-badge"><div className="live-dot" />Live</div>
               </div>
               <div className="campus-name">{campus.name}</div>
-              <div className="campus-uni">{campus.university}</div>
               <div className="campus-location">{campus.location}</div>
-              {campus.available && <div className="campus-arrow">Browse listings →</div>}
+              <div className="campus-arrow">Browse listings →</div>
             </div>
           ))}
         </div>
       </div>
+      <Footer />
     </>
   )
 }
